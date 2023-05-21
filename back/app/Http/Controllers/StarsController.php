@@ -37,7 +37,6 @@ class StarsController extends Controller
             'firstname' => 'string|max:50',
             'description' => 'string',
         ]);
-        dd(response()->json($this->manage($request)));
 
         return response()->json($this->manage($request));
     }

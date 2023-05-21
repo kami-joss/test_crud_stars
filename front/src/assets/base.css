@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* color palette from <https://github.com/vuejs/theme> */
 :root {
   --vt-c-white: #ffffff;
@@ -70,4 +74,20 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  width: 100%;
+}
+
+@layer components {
+  .button {
+    @apply py-2 px-4 rounded-md flex justify-center items-center gap-2
+  }
+  .input-text {
+    @apply p-2 rounded-md border focus:outline-0 focus:border-blue-300 transition
+  }
+  .input-textarea {
+    @apply p-2 rounded-md border focus:outline-0 focus:border-blue-300 transition
+  }
 }
