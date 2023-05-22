@@ -35,6 +35,7 @@ watch(form, async (val) => {
           'border-error': errors.name
         }"
         placeholder="Nom*"
+        :value="form.name"
         @change="form.name = $event.target.value"
         @focus="errors.name = null"
         @blur="
@@ -48,6 +49,7 @@ watch(form, async (val) => {
           'border-error': errors.firstname
         }"
         placeholder="Prénom*"
+        :value="form.firstname"
         @change="form.firstname = $event.target.value"
         @focus="errors.firstname = null"
         @blur="
@@ -60,6 +62,7 @@ watch(form, async (val) => {
       <textarea
         class="input-textarea resize-none h-32"
         placeholder="Description"
+        :value="form.description"
         @change="form.description = $event.target.value"
       />
     </form>

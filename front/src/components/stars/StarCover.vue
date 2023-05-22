@@ -1,20 +1,63 @@
 <script setup>
+import axios from 'axios'
+import { ref } from 'vue'
+import Modal from '../Modal.vue'
+import StarForm from './StarForm.vue'
+
 const props = defineProps({
   star: Object
 })
 
-const emit = defineEmits(['setShowingStar'])
+const editModal = ref(false)
+const deleteModal = ref(false)
+const editStarForm = ref({
+  name: props.star.name,
+  firstname: props.star.firstname,
+  description: props.star.description
+})
+
+const emit = defineEmits(['setShowingStar', 'updated', 'deleted'])
+
+const updateStar = () => {
+  axios
+    .put(`stars/${props.star.id}`, editStarForm.value)
+    .then((res) => {
+      emit('updated', res.data)
+      editModal.value = false
+    })
+    .catch((err) => {
+      console.error(err)
+    })
+}
+
+const deleteStar = () => {
+  axios
+    .delete(`stars/${props.star.id}`)
+    .then(() => {
+      emit('deleted', props.star.id)
+    })
+    .catch((err) => {
+      console.error(err)
+    })
+}
 </script>
 
 <template>
   <div
-    class="p-2 border rounded-md hover:bg-slate-100 cursor-pointer flex justify-between gap-2"
+    class="border rounded-md hover:bg-slate-100 cursor-pointer flex justify-between items-center gap-2"
     @click="emit('setShowingStar', star.id)"
   >
-    <h2>{{ star.firstname }} {{ star.name }}</h2>
-    <div class="grid grid-cols-2">
-      <div class="flex justify-center">
-        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 20 20">
+    <div class="p-2">
+      <h2>{{ star.firstname }} {{ star.name }}</h2>
+    </div>
+
+    <!-- Actions buttons -->
+    <div class="grid grid-cols-2 gap-2 items-center">
+      <div
+        class="flex justify-center hover:bg-gray-300 hover:rounded-full duration-200 p-2"
+        @click.stop="editModal = true"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 20 20">
           <g fill="currentColor">
             <path
               fill-rule="evenodd"
@@ -25,8 +68,12 @@ const emit = defineEmits(['setShowingStar'])
           </g>
         </svg>
       </div>
-      <div class="flex justify-center">
-        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24">
+
+      <div
+        class="flex justify-center hover:bg-gray-300 hover:rounded-full duration-200 p-2"
+        @click.stop="deleteModal = true"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
           <path
             fill="currentColor"
             d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
@@ -34,5 +81,46 @@ const emit = defineEmits(['setShowingStar'])
         </svg>
       </div>
     </div>
+
+    <!-- Modales -->
+    <Modal v-if="editModal" :isShowing="editModal" :title="'Modifier une star'">
+      <template #content>
+        <StarForm :star="star" @on-change="editStarForm = $event" />
+      </template>
+      <template #buttons>
+        <button type="button" class="button font-bold text-white bg-primary" @click="updateStar">
+          Valider
+        </button>
+        <button
+          type="button"
+          class="button font-bold text-white bg-gray-300"
+          @click="editModal = false"
+        >
+          Fermer
+        </button>
+      </template>
+    </Modal>
+
+    <Modal v-if="deleteModal" :isShowing="deleteModal" :title="'Supprimer une star'">
+      <template #content>
+        <p>Attention ! Êtes-vous sûr de vouloir supprimer {{ star.firstname }} {{ star.name }} ?</p>
+      </template>
+      <template #buttons>
+        <button
+          type="button"
+          class="button font-bold text-white bg-primary"
+          @click.stop="deleteStar"
+        >
+          Valider
+        </button>
+        <button
+          type="button"
+          class="button font-bold text-white bg-gray-300"
+          @click="deleteModal = false"
+        >
+          Annuler
+        </button>
+      </template>
+    </Modal>
   </div>
 </template>
