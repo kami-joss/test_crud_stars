@@ -138,7 +138,7 @@ const onDeleteImage = (event) => {
           type="button"
           class="button font-bold text-white bg-gray-300"
           :disabled="isFetching"
-          @click="deleteModal = false"
+          @click.stop="deleteModal = false"
         >
           Annuler
         </button>
