@@ -41,7 +41,7 @@ const deleteImage = (event) => {
 const createModal = ref(false)
 const createStarForm = ref(null)
 const createNewStar = async () => {
-  const form = omitBy(createStarForm.value, (val) => val === '' || val === null)
+  const form = omitBy(createStarForm.value, (val) => val === '' || val === null || val.length === 0)
   const formData = formatObjectAsFormData(form)
   if(form.images) {
     formData.append('images', form.images[0])
