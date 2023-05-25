@@ -1,5 +1,6 @@
 <script setup>
 import { reactive, watch } from 'vue'
+import axios from 'axios';
 
 const props = defineProps({
   star: Object
@@ -9,21 +10,33 @@ const form = reactive({
   name: props.star?.name ?? '',
   firstname: props.star?.firstname ?? '',
   description: props.star?.description ?? '',
-  image: null
+  images: props.star?.images ?? []
 })
 
 const errors = reactive({
   name: null,
   firstname: null,
   description: null,
-  image: null
+  images: null
 })
 
-const emit = defineEmits(['onChange'])
+const emit = defineEmits(['onChange', 'onDeleteImage']);
 
-watch(form, async (val) => {
+const deleteImage = () => {
+  axios.delete(`/images/${props.star.images[0].id}`)
+  .then(() => {
+    form.images = []
+    emit('onDeleteImage', props.star.id)
+  })
+  .catch((err) => {
+    console.log(err)
+  })
+}
+
+watch(form, (val) => {
   emit('onChange', val)
 })
+
 </script>
 
 <template>
@@ -36,7 +49,7 @@ watch(form, async (val) => {
         }"
         placeholder="Nom*"
         :value="form.name"
-        @change="form.name = $event.target.value"
+        @input="form.name = $event.target.value"
         @focus="errors.name = null"
         @blur="
           form.name === '' ? (errors.name = 'Ce champs est obligatoire') : (errors.name = null)
@@ -50,7 +63,7 @@ watch(form, async (val) => {
         }"
         placeholder="Prénom*"
         :value="form.firstname"
-        @change="form.firstname = $event.target.value"
+        @input="form.firstname = $event.target.value"
         @focus="errors.firstname = null"
         @blur="
           form.firstname === ''
@@ -59,11 +72,18 @@ watch(form, async (val) => {
         "
       />
       <span v-if="errors.firstname" class="text-error"> Ce champs est requis </span>
+
+      <input v-if="!form.images || form.images.length === 0" type="file" @change="form.images[0] = $event.target.files[0]" />
+      <div v-else>
+        <img :src="'http://localhost:8000' + form.images[0]?.path" width="300" />
+        <button type="button" class="button bg-red-500 text-white my-2" @click="deleteImage"> Supprimer </button>
+      </div>
+
       <textarea
         class="input-textarea resize-none h-32"
         placeholder="Description"
         :value="form.description"
-        @change="form.description = $event.target.value"
+        @input="form.description = $event.target.value"
       />
     </form>
   </div>

@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Image;
 use App\Models\Star;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use App\Models\images;
+use Exception;
 
 class StarsController extends Controller
 {
@@ -13,7 +16,7 @@ class StarsController extends Controller
      */
     public function index()
     {
-        return response()->json(Star::all());
+        return response()->json(Star::with(['images'])->get());
     }
 
     /**
@@ -23,7 +26,7 @@ class StarsController extends Controller
      */
     public function show(Request $request, Star $id)
     {
-        return response()->json($id);
+        return response()->json($id->with(['images']));
     }
 
     /**
@@ -36,6 +39,7 @@ class StarsController extends Controller
             'name' => 'string|max:50',
             'firstname' => 'string|max:50',
             'description' => 'string',
+            'images' => 'mimes:jpg,jpeg,png|max:2048'
         ]);
 
         return response()->json($this->manage($request));
@@ -52,8 +56,9 @@ class StarsController extends Controller
             'name' => 'string|max:50',
             'firstname' => 'string|max:50',
             'description' => 'string',
+            'images' => 'mimes:jpg,jpeg,png|max:2048'
         ]);
-
+        
         return response()->json($this->manage($request, $id));
     }
 
@@ -75,7 +80,16 @@ class StarsController extends Controller
             ]
         );
 
-        return $star;
+        if ($request->images) {
+            try {
+                $images = $this->storeimages($request);
+                $star->images()->save($images);
+            } catch (Exception $e) {
+                return $e;
+            }
+        }
+
+        return Star::with(['images'])->where('id', $star->id)->first();
     }
 
     /**
@@ -86,5 +100,26 @@ class StarsController extends Controller
     {
         $id->delete();
         return response()->json('Deleted');
+    }
+
+    /**
+     * Store an images
+     * @param Request $request
+     * @return images
+     */
+    private function storeimages($request)
+    {
+        $fileUpload = new Image;
+
+        if ($request->file('images')) {
+            $file_name = time() . '_' . $request->images->getClientOriginalName();
+            $file_path = $request->file('images')->storeAs('images', $file_name, 'public');
+
+            $fileUpload->name = time() . '_' . $request->images->getClientOriginalName();
+            $fileUpload->path = '/storage/' . $file_path;
+            $fileUpload->save();
+
+            return $fileUpload;
+        }
     }
 }

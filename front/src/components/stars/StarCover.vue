@@ -3,6 +3,8 @@ import axios from 'axios'
 import { ref } from 'vue'
 import Modal from '../Modal.vue'
 import StarForm from './StarForm.vue'
+import { formatObjectAsFormData } from '../../utils/request.utils'
+import omitBy from 'lodash.omitby'
 
 const props = defineProps({
   star: Object
@@ -13,32 +15,50 @@ const deleteModal = ref(false)
 const editStarForm = ref({
   name: props.star.name,
   firstname: props.star.firstname,
-  description: props.star.description
+  description: props.star.description,
+  images: props.star.images[0] ?? null
 })
+const isFetching = ref(false)
 
-const emit = defineEmits(['setShowingStar', 'updated', 'deleted'])
+const emit = defineEmits(['setShowingStar', 'updated', 'deleted', 'imageDeleted'])
 
 const updateStar = () => {
+  let form = omitBy(editStarForm.value, (val) => val === '' || val === null)
+  let formData = formatObjectAsFormData(form)
+  formData.append('_method', 'PUT')
+  if(form.images) {
+    formData.append('images', form.images[0])
+  }
+
   axios
-    .put(`stars/${props.star.id}`, editStarForm.value)
+    .post(`stars/${props.star.id}`, formData)
     .then((res) => {
+      isFetching.value = false
       emit('updated', res.data)
       editModal.value = false
     })
-    .catch((err) => {
-      console.error(err)
+    .catch(() => {
+      isFetching.value = false
     })
 }
 
 const deleteStar = () => {
+  isFetching.value = false
   axios
     .delete(`stars/${props.star.id}`)
     .then(() => {
       emit('deleted', props.star.id)
+      isFetching.value = false
+      deleteModal.value = false
     })
-    .catch((err) => {
-      console.error(err)
+    .catch(() => {
+      isFetching.value = false
+      deleteModal.value = false
     })
+}
+
+const onDeleteImage = (event) => {
+  emit('imageDeleted', event)
 }
 </script>
 
@@ -85,7 +105,7 @@ const deleteStar = () => {
     <!-- Modales -->
     <Modal v-if="editModal" :isShowing="editModal" :title="'Modifier une star'">
       <template #content>
-        <StarForm :star="star" @on-change="editStarForm = $event" />
+        <StarForm :star="star" @on-change="editStarForm = $event" @onDeleteImage="onDeleteImage" />
       </template>
       <template #buttons>
         <button type="button" class="button font-bold text-white bg-primary" @click="updateStar">
@@ -109,6 +129,7 @@ const deleteStar = () => {
         <button
           type="button"
           class="button font-bold text-white bg-primary"
+          :disabled="isFetching"
           @click.stop="deleteStar"
         >
           Valider
@@ -116,6 +137,7 @@ const deleteStar = () => {
         <button
           type="button"
           class="button font-bold text-white bg-gray-300"
+          :disabled="isFetching"
           @click="deleteModal = false"
         >
           Annuler
