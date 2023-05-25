@@ -5,6 +5,7 @@ import axios from 'axios'
 import omitBy from 'lodash.omitby'
 import StarForm from './StarForm.vue'
 import Modal from '../Modal.vue'
+import { formatObjectAsFormData } from '../../utils/request.utils'
 
 const emit = defineEmits(['setShowingStar', 'editStar'])
 
@@ -16,7 +17,6 @@ const fetchStars = async () => {
   emit('setShowingStar', stars.value[0] ?? null)
 }
 
-
 const setShowingStar = (starId) => {
   const starShowing = stars.value.find((star) => star.id === starId)
   emit('setShowingStar', starShowing)
@@ -25,6 +25,7 @@ const setShowingStar = (starId) => {
 const updateElementFromStarsList = (event) => {
   const index = stars.value.indexOf(stars.value.find((star) => star.id === event.id))
   stars.value[index] = event
+  emit('setShowingStar', stars.value[index])
 }
 
 const deleteElementFromStarsList = (event) => {
@@ -32,12 +33,22 @@ const deleteElementFromStarsList = (event) => {
   stars.value.splice(index, 1)
 }
 
+const deleteImage = (event) => {
+  const index = stars.value.indexOf(stars.value.find((star) => star.id === event))
+  stars.value[index].images = [];
+}
+
 const createModal = ref(false)
 const createStarForm = ref(null)
-const createNewStar = () => {
+const createNewStar = async () => {
   const form = omitBy(createStarForm.value, (val) => val === '' || val === null)
+  const formData = formatObjectAsFormData(form)
+  if(form.images) {
+    formData.append('images', form.images[0])
+  }
+  
   axios
-    .post('/stars', form)
+    .post('/stars', formData)
     .then((res) => {
       stars.value.push(res.data)
       createModal.value = false
@@ -82,6 +93,7 @@ onMounted(() => {
         @set-showing-star="setShowingStar"
         @updated="updateElementFromStarsList"
         @deleted="deleteElementFromStarsList"
+        @imageDeleted="deleteImage"
       />
     </div>
 

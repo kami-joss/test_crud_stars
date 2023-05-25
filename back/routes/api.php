@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ImagesController;
 use App\Http\Controllers\StarsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -23,6 +24,15 @@ Route::prefix('stars')
     ->controller(StarsController::class)
     ->group(function () {
         Route::get('/', 'index');
+        Route::get('/{id}', 'show');
+        Route::post('/', 'store');
+        Route::put('/{id}', 'update');
+        Route::delete('/{id}', 'destroy');
+});
+
+Route::prefix('images')
+    ->controller(ImagesController::class)
+    ->group(function () {
         Route::get('/{id}', 'show');
         Route::post('/', 'store');
         Route::put('/{id}', 'update');

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Star extends Model
 {
@@ -20,4 +21,9 @@ class Star extends Model
         self::COLUMN_FIRSTNAME,
         self::COLUMN_DESCRIPTION,
     ];
+
+    public function Images(): BelongsToMany
+    {
+        return $this->belongsToMany(Image::class, 'stars_images');
+    }
 }

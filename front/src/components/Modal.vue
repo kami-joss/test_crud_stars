@@ -4,9 +4,6 @@ const props = defineProps({
   title: String
 })
 
-const handleSubmit = () => {
-    console.log('submit')
-}
 </script>
 
 <template>
